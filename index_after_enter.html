@@ -9,21 +9,34 @@
 </head>
 <body class="flex h-screen overflow-hidden bg-gray-50">
   <!-- 왼쪽 영역: 상품 및 설정 -->
-  <div class="w-1/3 m-7 p-7 overflow-auto items-center justify-center rounded-3xl border-2 border-solid">
-    <h2 id="titleArea" contenteditable class="flex items-center text-2xl text-blue-600 font-bold mb-4 cursor-pointer">
-      raffle box  제목 입력
-    </h2>
-    <div id="prizeList" class="grid grid-cols-2 gap-2"></div>
-    <button id="addPrizeBtn" class="px-3 py-1 bg-blue-500 text-white rounded mt-2">+ 상품 추가</button>
-    <button id="resetPrizeBtn" class="px-3 py-1 bg-red-500 text-white rounded mt-2">리셋</button>
-    <textarea id="probabilityFunction" class="w-full h-32 border p-2 mt-4">
+  <div>
+    <div class="m-7 p-7 overflow-auto items-center justify-center text-center rounded-3xl border-2 border-solid">
+      <h2 id="titleArea" contenteditable class="items-center text-2xl text-blue-600 font-bold mb-4 cursor-pointer">
+        제목 입력
+      </h2>
+      <div id="prizeList" class="grid grid-cols-2 gap-2"></div>
+      <button id="addPrizeBtn" class="px-3 py-1 bg-blue-500 text-white rounded mt-2">+ 상품 추가</button>
+      <button id="resetPrizeBtn" class="px-3 py-1 bg-red-500 text-white rounded mt-2">리셋</button>
+      <textarea id="probabilityFunction" class="w-full h-32 border p-2 mt-4">
   function getRandom(numbers){
       return Math.floor(Math.random() * (200 - 100 + 1)) + 100;
   }
           </textarea>
-    <input id="ballCount" type="number" class="border p-2 w-full mt-2" placeholder="발급숫자 입력 후 Enter">
-    <button id="drawBtn" class="px-4 py-2 bg-orange-500 text-white rounded mt-2">추첨!</button>
+      <input id="ballCount" type="number" class="border p-2 w-full mt-2" placeholder="발급숫자 입력 후 Enter">
+      <button id="drawBtn" class="px-4 py-2 bg-orange-500 text-white rounded mt-2">추첨!</button>
+    </div>
+    <div class="max-w-7xl mx-auto px-4 text-center">
+      <p class="text-sm">
+        © 2025
+        <a href="https://github.com/heonyKim" class="text-blue-400 hover:underline" target="_blank">
+          heonyKim
+        </a>.
+        All rights reserved.
+      </p>
+    </div>
+
   </div>
+
 
 
   <!-- 오른쪽 영역: 캔버스 -->
@@ -32,9 +45,14 @@
   </div>
 
   <script type="module">
+    let latestTitleArea = localStorage.getItem('latestTitleArea');
+    let titleArea = document.getElementById('titleArea');
+    if (!latestTitleArea){
+      latestTitleArea = titleArea.innerText;
+    }
+    titleArea.innerText = latestTitleArea;
 
     const latestPrizeList = localStorage.getItem('latestPrizeList');
-    console.log("latestPrizeList",latestPrizeList)
     if (latestPrizeList) {
       const targetDiv = document.getElementById('prizeList');
       targetDiv.innerHTML = latestPrizeList;
@@ -79,12 +97,37 @@
         ctx.fillText(this.number, this.x, this.y);
       }
     }
-    let luckyPrize = null;
 
     let balls = [];
     let ballNumbers = [];
     let selectedPrize = null;
     let drawStatus = 0;
+
+    const ballMargin = 0;
+    const ballRadius = 40;
+
+    const latestBallCount = localStorage.getItem('latestBallCount');
+    if (latestBallCount) {
+      document.getElementById('ballCount').value = latestBallCount;
+    }
+
+    let latestBalls = localStorage.getItem('latestBalls');
+    if (latestBalls){
+      const colCount = Math.floor((canvas.width - ballMargin) / (2 * ballRadius + ballMargin));
+      const rowCount = Math.ceil(latestBallCount / colCount);
+      canvas.height = ballMargin + rowCount * (2 * ballRadius + ballMargin);
+
+      latestBalls = JSON.parse(latestBalls);
+      for (let i = 0; i < latestBalls.length; i++) {
+        let ball = latestBalls[i];
+        ball = new Ball(ball.x, ball.y, ball.radius, ball.color, ball.number);
+        balls.push(ball);
+      }
+
+      animate();
+    }
+
+
 
     // 캔버스 애니메이션 함수
     function animate() {
@@ -109,19 +152,17 @@
 
     // 공 생성 함수
     function createBalls(n) {
-      ballNumbers = Array.from({ length: n }, (_, i) => i + 1);
-      const margin = 0;
-      const radius = 40;
-      const colCount = Math.floor((canvas.width - margin) / (2 * radius + margin));
+      // ballNumbers = Array.from({ length: n }, (_, i) => i + 1);
+      const colCount = Math.floor((canvas.width - ballMargin) / (2 * ballRadius + ballMargin));
       const rowCount = Math.ceil(n / colCount);
-      canvas.height = margin + rowCount * (2 * radius + margin);
+      canvas.height = ballMargin + rowCount * (2 * ballRadius + ballMargin);
 
       let positions = [];
       for (let i = 0; i < n; i++) {
         const col = i % colCount;
         const row = Math.floor(i / colCount);
-        const x = margin + radius + col * (2 * radius + margin);
-        const y = margin + radius + row * (2 * radius + margin);
+        const x = ballMargin + ballRadius + col * (2 * ballRadius + ballMargin);
+        const y = ballMargin + ballRadius + row * (2 * ballRadius + ballMargin);
         positions.push({ x, y });
       }
       positions = shuffle(positions);
@@ -129,20 +170,41 @@
       balls = [];
       for (let i = 0; i < n; i++) {
         const pos = positions[i];
-        const ball = new Ball(pos.x, pos.y, radius, "white", i + 1);
+        const ball = new Ball(pos.x, pos.y, ballRadius, "white", i + 1);
         balls.push(ball);
       }
       balls.sort((a, b) => (a.y - b.y) || (a.x - b.x));
       animate();
+
+      localStorage.setItem('latestBallCount',n);
+      localStorage.setItem('latestBalls', JSON.stringify(balls));
+    }
+
+    function preventRefresh(e){
+      // F5 키 (키 코드 116) 막기
+      if(e.keyCode === 116){
+        e.preventDefault();
+        alert('추첨 중 새로고침이 제한됩니다.');
+      }else if((e.ctrlKey || e.metaKey) && e.keyCode === 82){
+        // Ctrl+R 혹은 Command+R (mac) 막기
+        e.preventDefault();
+        alert('추첨 중 새로고침이 제한됩니다.');
+      }
+      window.onbeforeunload = function(e) {
+        e.preventDefault();
+      };
     }
 
     // 추첨 버튼 클릭 이벤트
     document.getElementById('drawBtn').onclick = () => {
       console.log("drawStatus",drawStatus);
       if(drawStatus > 0) return Swal.fire('추첨이 진행중 입니다.');
-      drawStatus = 1;
       if (!selectedPrize) return Swal.fire('상품을 클릭하여 선택하세요');
       if (balls.length === 0) return Swal.fire('발급된 번호가 모두 사용되었습니다.');
+      drawStatus = 1;
+
+      // 새로고침 제한
+      document.addEventListener('keydown', preventRefresh);
 
       let currentIteration = 0;
       // 10ms 간격으로 무한 진행되는 빠른 하이라이트 애니메이션
@@ -224,7 +286,7 @@
                 clearInterval(fifthInterval);
                 startSixthInterval();
               }
-            }, 500);
+            }, 300);
           }
 
           function startSixthInterval(){
@@ -238,7 +300,7 @@
                 clearInterval(sixthInterval);
                 startSeventhInterval();
               }
-            }, 700);
+            }, 500);
           }
 
           function startSeventhInterval(){
@@ -252,7 +314,7 @@
                 clearInterval(seventhInterval);
                 startEighthInterval();
               }
-            }, 800);
+            }, 700);
           }
 
           function startEighthInterval(){
@@ -278,7 +340,11 @@
                   selectedPrize.disabled = true;
                   selectedPrize.classList.add('bg-gray-400');
                   selectedPrize = null;
-                }, 2000);
+                  [...prizeList.children].forEach(c => c.classList.remove('bg-green-400'));
+                  localStorage.setItem('latestPrizeList', prizeList.innerHTML);
+                  localStorage.setItem('latestBalls', JSON.stringify(balls));
+                  document.removeEventListener('keydown', preventRefresh);
+                }, 1500);
               }
             }, 1000);
           }
@@ -319,9 +385,18 @@
     // 리셋 버튼 이벤트
     document.getElementById('resetPrizeBtn').onclick = () => {
       prizeList.innerHTML = '';
+      balls = [];
       selectedPrize = null;
+
       localStorage.removeItem('latestPrizeList');
+      localStorage.removeItem('latestBallCount');
+      localStorage.removeItem('latestBalls');
     };
+
+
+    titleArea.addEventListener('blur', e => {
+      localStorage.setItem('latestTitleArea', titleArea.innerText);
+    })
   </script>
 </body>
 </html>
