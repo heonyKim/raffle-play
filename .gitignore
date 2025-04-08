@@ -1,0 +1,6 @@
+상품리스트.txt
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
