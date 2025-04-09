@@ -38,6 +38,7 @@
         align-items: flex-start;
       }
       .ball_wrap {
+        background-color: black;
         margin: 10px;
         padding: 10px;
         border-radius: 10px;
@@ -60,6 +61,8 @@
         border-radius: 5px;
         background-color: #dadee3;
         padding: 8px 10px;
+        font-size: 22pt;
+        font-weight: bold;
       }
       .button-outline {
         border: 1px solid #619eff;
@@ -82,7 +85,7 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        font-size: 24px;
+        font-size: 32px;
         color: #394452;
         font-weight: bold;
       }
@@ -173,7 +176,15 @@
             target="_blank"
           >
             heonyKim </a
-          >. All rights reserved.
+          >.
+          <a
+                  href="https://github.com/shjeon-96"
+                  class="text-blue-400 hover:underline"
+                  target="_blank"
+          >
+            shjeon-96 </a
+          >.
+          All rights reserved.
         </p>
       </div>
     </div>
@@ -186,6 +197,25 @@
     </div>
 
     <script type="module">
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      let drawAfterEnterAudioBuffer = null;
+
+      // const sound = new Audio('733769__slv443__click-menu.wav');
+      // const track = audioCtx.createMediaElementSource(sound);
+
+      fetch('733769__slv443__click-menu.wav')
+              .then(response => response.arrayBuffer())
+              .then(arrayBuffer => audioCtx.decodeAudioData(arrayBuffer))
+              .then(decodedData => {
+                drawAfterEnterAudioBuffer = decodedData;
+                console.log("WAV 파일이 로드되었습니다.");
+              })
+              .catch(error => {
+                console.error("오디오 로드 에러:", error);
+              });
+
+
+
       let balls = [];
       let selectedPrize = null;
       let drawStatus = 0;
@@ -215,7 +245,12 @@
       const latestBallCount = localStorage.getItem("latestBallCount");
       if (latestBallCount) {
         document.getElementById("ballCount").value = latestBallCount;
-        createBalls(+latestBallCount);
+        // createBalls(+latestBallCount);
+      }
+
+      const latestBalls = localStorage.getItem("latestBalls");
+      if (latestBalls) {
+        setBalls(JSON.parse(latestBalls));
       }
 
       // 공 생성 (발급숫자 입력 후 엔터)
@@ -234,12 +269,21 @@
 
       // 공 생성 함수
       function createBalls(n) {
-        balls = shuffle(Array.from({ length: n }, (_, i) => i + 1));
+
+        setBalls(
+                shuffle(Array.from({ length: n }, (_, i) => i + 1))
+        );
+
+      }
+
+      // 공 등록 함수
+      function setBalls(targetBalls) {
+        balls = targetBalls;
 
         const ballContainer = document.getElementById("ball_container");
         ballContainer.innerHTML = ""; // 초기화 (필요 시)
 
-        const ballsArray = balls.map((item) => {
+        const ballsArray = targetBalls.map((item) => {
           const ball = document.createElement("div");
           ball.classList.add("ball");
           ball.textContent = item;
@@ -250,8 +294,8 @@
           ballContainer.appendChild(ball);
         });
 
-        localStorage.setItem("latestBallCount", n);
-        localStorage.setItem("latestBalls", JSON.stringify(balls));
+        localStorage.setItem("latestBallCount", targetBalls.length);
+        localStorage.setItem("latestBalls", JSON.stringify(targetBalls));
       }
 
       function preventRefresh(e) {
@@ -361,6 +405,20 @@
                 currentIteration++;
                 const gap = targetSpinCount - currentIteration;
                 console.log("Interval, remaining:", gap, intervalDuration);
+
+                if (drawAfterEnterAudioBuffer) {
+                  // AudioBufferSourceNode는 한 번 재생 후 재사용할 수 없으므로 매번 새로 생성해야 합니다.
+                  const source = audioCtx.createBufferSource();
+                  source.buffer = drawAfterEnterAudioBuffer;
+                  source.connect(audioCtx.destination);
+                  source.start();
+                }
+
+                // if (track) {
+                //   track.connect(audioCtx.destination);
+                //   source.start();
+                // }
+
                 setIntervalDuration(gap);
 
                 if (currentIteration >= targetSpinCount) {
@@ -377,44 +435,16 @@
             function setIntervalDuration(gap) {
               if (gap <= 1) {
                 intervalDuration = 1000;
-              } else if (gap <= 2) {
-                intervalDuration = 950;
               } else if (gap <= 3) {
                 intervalDuration = 900;
-              } else if (gap <= 4) {
-                intervalDuration = 850;
-              } else if (gap <= 5) {
-                intervalDuration = 800;
-              } else if (gap <= 6) {
-                intervalDuration = 750;
               } else if (gap <= 7) {
                 intervalDuration = 700;
-              } else if (gap <= 8) {
-                intervalDuration = 650;
-              } else if (gap <= 9) {
-                intervalDuration = 600;
-              } else if (gap <= 10) {
-                intervalDuration = 550;
               } else if (gap <= 12) {
                 intervalDuration = 500;
-              } else if (gap <= 14) {
-                intervalDuration = 450;
-              } else if (gap <= 17) {
-                intervalDuration = 400;
-              } else if (gap <= 20) {
-                intervalDuration = 350;
               } else if (gap <= 25) {
                 intervalDuration = 300;
-              } else if (gap <= 30) {
-                intervalDuration = 250;
-              } else if (gap <= 40) {
-                intervalDuration = 200;
-              } else if (gap <= 60) {
-                intervalDuration = 150;
-              } else if (gap <= 80) {
+              }  else if (gap <= 50) {
                 intervalDuration = 100;
-              } else if (gap <= 100) {
-                intervalDuration = 70;
               } else {
                 intervalDuration = 50;
               }
@@ -520,12 +550,14 @@
       document.getElementById("resetPrizeBtn").onclick = () => {
         if (confirm("리셋을 진행합니다") === true) {
           prizeList.innerHTML = "";
+          ball_container.innerHTML = "";
           balls = [];
           selectedPrize = null;
 
           localStorage.removeItem("latestPrizeList");
           localStorage.removeItem("latestBallCount");
           localStorage.removeItem("latestBalls");
+
         }
       };
 
