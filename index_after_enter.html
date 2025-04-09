@@ -232,6 +232,7 @@
         targetDiv.innerHTML = latestPrizeList;
         const buttons = document.querySelectorAll("#prizeList button");
         buttons.forEach((button) => {
+          button.classList.remove("button-selected");
           button.onclick = () => {
             [...prizeList.children].forEach((c) =>
               c.classList.remove("button-selected")
