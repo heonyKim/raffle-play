@@ -37,8 +37,6 @@
 
   </div>
 
-
-
   <!-- 오른쪽 영역: 캔버스 -->
   <div class="w-full h-full flex items-center justify-center">
     <canvas id="myCanvas" width="800" height="300" style="border:1px solid #ccc;"></canvas>
@@ -282,7 +280,7 @@
               balls[highlightIndex].color = "yellow";
               currentIteration++;
               console.log("Fifth Interval, remaining:", targetSpinCount - currentIteration);
-              if(targetSpinCount - currentIteration <= 7){
+              if(targetSpinCount - currentIteration <= 12){
                 clearInterval(fifthInterval);
                 startSixthInterval();
               }
@@ -296,7 +294,7 @@
               balls[highlightIndex].color = "yellow";
               currentIteration++;
               console.log("Sixth Interval, remaining:", targetSpinCount - currentIteration);
-              if(targetSpinCount - currentIteration <= 4){
+              if(targetSpinCount - currentIteration <= 6){
                 clearInterval(sixthInterval);
                 startSeventhInterval();
               }
@@ -335,9 +333,23 @@
                 setTimeout(() => {
                   drawStatus = 0;
                   balls.splice(highlightIndex, 1);
-                  Swal.fire(`${winnerBall.number}번`, `🎉축하합니다! ${selectedPrize.textContent} 당첨!`, 'success');
+
+                  Swal.fire({
+                    title: `${winnerBall.number}번`,
+                    html: `🎉 <strong>축하합니다!</strong> ${selectedPrize.textContent} 당첨!`,
+                    icon: 'success',
+                    iconHtml: `🎉`, // 체크표시 대신 다른 문자 넣기
+                    customClass: {
+                      // 필요한 경우 여기에 CSS 클래스를 지정해 커스텀 스타일 적용
+                      title: 'swal2-title-custom',
+                      popup: 'swal2-popup-custom',
+                      icon: 'swal2-icon-custom'
+                    }
+                  });
+
+
                   selectedPrize.textContent += ` - ${winnerBall.number}번`;
-                  selectedPrize.disabled = true;
+                  // selectedPrize.disabled = true;
                   selectedPrize.classList.add('bg-gray-400');
                   selectedPrize = null;
                   [...prizeList.children].forEach(c => c.classList.remove('bg-green-400'));
@@ -384,13 +396,16 @@
 
     // 리셋 버튼 이벤트
     document.getElementById('resetPrizeBtn').onclick = () => {
-      prizeList.innerHTML = '';
-      balls = [];
-      selectedPrize = null;
+      if(confirm("리셋을 진행합니다")===true){
+        prizeList.innerHTML = '';
+        balls = [];
+        selectedPrize = null;
 
-      localStorage.removeItem('latestPrizeList');
-      localStorage.removeItem('latestBallCount');
-      localStorage.removeItem('latestBalls');
+        localStorage.removeItem('latestPrizeList');
+        localStorage.removeItem('latestBallCount');
+        localStorage.removeItem('latestBalls');
+      }
+
     };
 
 
