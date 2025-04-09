@@ -1,417 +1,538 @@
 <!DOCTYPE html>
 <html lang="ko">
-<head>
-  <meta charset="UTF-8">
-  <title>경품 추첨</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
-</head>
-<body class="flex h-screen overflow-hidden bg-gray-50">
-  <!-- 왼쪽 영역: 상품 및 설정 -->
-  <div>
-    <div class="m-7 p-7 overflow-auto items-center justify-center text-center rounded-3xl border-2 border-solid">
-      <h2 id="titleArea" contenteditable class="items-center text-2xl text-blue-600 font-bold mb-4 cursor-pointer">
-        제목 입력
-      </h2>
-      <div id="prizeList" class="grid grid-cols-2 gap-2"></div>
-      <button id="addPrizeBtn" class="px-3 py-1 bg-blue-500 text-white rounded mt-2">+ 상품 추가</button>
-      <button id="resetPrizeBtn" class="px-3 py-1 bg-red-500 text-white rounded mt-2">리셋</button>
-      <textarea id="probabilityFunction" class="w-full h-32 border p-2 mt-4">
+  <head>
+    <meta charset="UTF-8" />
+    <title>경품 추첨</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable.css"
+    />
+    <style>
+      * {
+        font-family: "Pretendard Variable", sans-serif;
+      }
+      .setting_container {
+        margin: 10px;
+        padding: 10px;
+        border-radius: 10px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-between;
+        border: 1px solid #dadee3;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+          0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        width: 400px;
+        height: calc(100% - 60px);
+      }
+      #ball_container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        width: 100%;
+        max-width: calc(100%);
+        justify-content: flex-start;
+        align-items: flex-start;
+      }
+      .ball_wrap {
+        margin: 10px;
+        padding: 10px;
+        border-radius: 10px;
+
+        border: 1px solid #dadee3;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+          0 4px 6px -2px rgba(0, 0, 0, 0.05);
+
+        width: 100%;
+        max-width: calc(100%);
+        justify-content: flex-start;
+        align-items: flex-start;
+        height: calc(100% - 20px);
+      }
+      .primary-color {
+        color: white;
+        background-color: #619eff;
+      }
+      .button-default {
+        border-radius: 5px;
+        background-color: #dadee3;
+        padding: 8px 10px;
+      }
+      .button-outline {
+        border: 1px solid #619eff;
+        background-color: white;
+        color: #619eff;
+      }
+      .button-selected {
+        background-color: #619eff;
+        color: white;
+      }
+
+      .ball {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        border: 1px solid #394452;
+        background: radial-gradient(circle at 30% 30%, #ffffff, #dbe0e6);
+        box-shadow: inset -3px -3px 8px rgba(255, 255, 255, 0.6),
+          inset 3px 3px 8px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.2);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 24px;
+        color: #394452;
+        font-weight: bold;
+      }
+      .ball_selected {
+        background: #619eff;
+        box-shadow: none;
+        color: white;
+      }
+      .ball_completed {
+        background: #619eff;
+        box-shadow: none;
+        color: white;
+      }
+      #prizeList {
+        height: -webkit-fill-available;
+        overflow-y: auto;
+      }
+      .special {
+        background-color: #feab29;
+        color: white;
+      }
+      .button-selected.special {
+        border: 5px solid #619eff;
+        color: white;
+      }
+    </style>
+  </head>
+  <body class="flex h-screen overflow-hidden bg-gray-50">
+    <!-- 왼쪽 영역: 상품 및 설정 -->
+    <div class="h-full">
+      <div class="setting_container">
+        <h2
+          id="titleArea"
+          contenteditable
+          class="items-center text-2xl font-bold mb-4 cursor-pointer text-[#619eff]"
+        >
+          제목 입력
+        </h2>
+        <div id="prizeList" class="grid grid-cols-2 gap-2 w-full"></div>
+        <div>
+          <textarea
+            id="probabilityFunction"
+            class="w-full h-32 border p-2 mt-4"
+          >
   function getRandom(numbers){
       return Math.floor(Math.random() * (200 - 100 + 1)) + 100;
   }
           </textarea>
-      <input id="ballCount" type="number" class="border p-2 w-full mt-2" placeholder="발급숫자 입력 후 Enter">
-      <button id="drawBtn" class="px-4 py-2 bg-orange-500 text-white rounded mt-2">추첨!</button>
+          <input
+            id="ballCount"
+            type="number"
+            class="border p-2 w-full mt-2"
+            placeholder="발급숫자 입력 후 Enter"
+          />
+          <div style="display: flex; gap: 10px; width: 100%">
+            <button
+              id="addPrizeBtn"
+              class="px-3 py-1 bg-blue-500 text-white rounded mt-2 h-[48px]"
+              style="flex: 1"
+            >
+              + 상품 추가
+            </button>
+            <button
+              id="resetPrizeBtn"
+              class="bg-red-500 text-white rounded mt-2 h-[48px]"
+              style="flex: 1"
+            >
+              리셋
+            </button>
+          </div>
+          <div style="display: flex; gap: 10px; width: 100%">
+            <button
+              id="drawBtn"
+              class="px-4 py-2 primary-color text-white rounded mt-2 h-[48px]"
+              style="flex: 2"
+            >
+              추첨!
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="max-w-7xl mx-auto px-4 text-center">
+        <p class="text-sm">
+          © 2025
+          <a
+            href="https://github.com/heonyKim"
+            class="text-blue-400 hover:underline"
+            target="_blank"
+          >
+            heonyKim </a
+          >. All rights reserved.
+        </p>
+      </div>
     </div>
-    <div class="max-w-7xl mx-auto px-4 text-center">
-      <p class="text-sm">
-        © 2025
-        <a href="https://github.com/heonyKim" class="text-blue-400 hover:underline" target="_blank">
-          heonyKim
-        </a>.
-        All rights reserved.
-      </p>
+
+    <!-- 오른쪽 영역: 캔버스 -->
+    <div class="w-full h-full flex items-center justify-center">
+      <div class="ball_wrap">
+        <div id="ball_container" />
+      </div>
     </div>
 
-  </div>
+    <script type="module">
+      let latestTitleArea = localStorage.getItem("latestTitleArea");
+      let titleArea = document.getElementById("titleArea");
+      if (!latestTitleArea) {
+        latestTitleArea = titleArea.innerText;
+      }
+      titleArea.innerText = latestTitleArea;
 
-  <!-- 오른쪽 영역: 캔버스 -->
-  <div class="w-full h-full flex items-center justify-center">
-    <canvas id="myCanvas" width="800" height="300" style="border:1px solid #ccc;"></canvas>
-  </div>
+      const latestPrizeList = localStorage.getItem("latestPrizeList");
+      if (latestPrizeList) {
+        const targetDiv = document.getElementById("prizeList");
+        targetDiv.innerHTML = latestPrizeList;
+        const buttons = document.querySelectorAll("#prizeList button");
+        buttons.forEach((button) => {
+          button.onclick = () => {
+            [...prizeList.children].forEach((c) =>
+              c.classList.remove("button-selected")
+            );
+            button.classList.add("button-selected");
+            selectedPrize = button;
+          };
+        });
+      }
 
-  <script type="module">
-    let latestTitleArea = localStorage.getItem('latestTitleArea');
-    let titleArea = document.getElementById('titleArea');
-    if (!latestTitleArea){
-      latestTitleArea = titleArea.innerText;
-    }
-    titleArea.innerText = latestTitleArea;
+      let balls = [];
+      let selectedPrize = null;
+      let drawStatus = 0;
 
-    const latestPrizeList = localStorage.getItem('latestPrizeList');
-    if (latestPrizeList) {
-      const targetDiv = document.getElementById('prizeList');
-      targetDiv.innerHTML = latestPrizeList;
-      const buttons = document.querySelectorAll("#prizeList button");
-      buttons.forEach(button => {
+      const latestBallCount = localStorage.getItem("latestBallCount");
+      if (latestBallCount) {
+        document.getElementById("ballCount").value = latestBallCount;
+        createBalls(+latestBallCount);
+      }
 
-        button.onclick = () => {
-          [...prizeList.children].forEach(c => c.classList.remove('bg-green-400'));
-          button.classList.add('bg-green-400');
-          selectedPrize = button;
+      // 공 생성 (발급숫자 입력 후 엔터)
+      document.getElementById("ballCount").onkeyup = (e) => {
+        if (e.key === "Enter") createBalls(+e.target.value);
+      };
+
+      // 배열 섞기 (Fisher-Yates 알고리즘)
+      function shuffle(arr) {
+        for (let i = arr.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+      }
+
+      // 공 생성 함수
+      function createBalls(n) {
+        balls = shuffle(Array.from({ length: n }, (_, i) => i + 1));
+
+        const ballContainer = document.getElementById("ball_container");
+        ballContainer.innerHTML = ""; // 초기화 (필요 시)
+
+        const ballsArray = balls.map((item) => {
+          const ball = document.createElement("div");
+          ball.classList.add("ball");
+          ball.textContent = item;
+          return ball;
+        });
+
+        ballsArray.forEach((ball) => {
+          ballContainer.appendChild(ball);
+        });
+
+        localStorage.setItem("latestBallCount", n);
+        localStorage.setItem("latestBalls", JSON.stringify(balls));
+      }
+
+      function preventRefresh(e) {
+        // F5 키 (키 코드 116) 막기
+        if (e.keyCode === 116) {
+          e.preventDefault();
+          alert("추첨 중 새로고침이 제한됩니다.");
+        } else if ((e.ctrlKey || e.metaKey) && e.keyCode === 82) {
+          // Ctrl+R 혹은 Command+R (mac) 막기
+          e.preventDefault();
+          alert("추첨 중 새로고침이 제한됩니다.");
+        }
+        window.onbeforeunload = function (e) {
+          e.preventDefault();
+        };
+      }
+
+      // 추첨 버튼 클릭 이벤트
+      document.getElementById("drawBtn").onclick = () => {
+        console.log("drawStatus", drawStatus);
+        if (drawStatus > 0)
+          return Swal.fire({
+            title: "추첨이 진행중 입니다.",
+            width: "auto",
+            padding: "1em",
+            heightAuto: false,
+            allowOutsideClick: false,
+            confirmButtonText: "확인",
+            customClass: {
+              confirmButton: "primary-color", // 여기서 커스텀 클래스 지정
+            },
+          });
+        if (!selectedPrize)
+          return Swal.fire({
+            title: "상품을 클릭하여 선택하세요",
+            width: "auto",
+            padding: "1em",
+            heightAuto: false,
+            allowOutsideClick: false,
+            confirmButtonText: "확인",
+            customClass: {
+              confirmButton: "primary-color", // 여기서 커스텀 클래스 지정
+            },
+          });
+        if (balls.length === 0)
+          return Swal.fire({
+            title: "발급된 번호가 모두 사용되었습니다.",
+            width: "auto",
+            padding: "1em",
+            heightAuto: false,
+            allowOutsideClick: false,
+            confirmButtonText: "확인",
+            customClass: {
+              confirmButton: "primary-color", // 여기서 커스텀 클래스 지정
+            },
+          });
+        drawStatus = 1;
+
+        // 새로고침 제한
+        document.addEventListener("keydown", preventRefresh);
+        const ballsArray = document.querySelectorAll(".ball");
+        let currentIteration = 0;
+        // 10ms 간격으로 무한 진행되는 빠른 하이라이트 애니메이션
+        let fastInterval = setInterval(() => {
+          let highlightIndex = currentIteration % balls.length;
+
+          currentIteration++;
+
+          // div ball 애니메이션
+          ballsArray.forEach((ball) => ball.classList.remove("ball_selected"));
+          ballsArray[highlightIndex].classList.add("ball_selected");
+        }, 30);
+
+        // 엔터키 입력 시 빠른 애니메이션 중단 및 spinCount 결정 후 느린 애니메이션 시작
+        const enterHandler = (e) => {
+          e.preventDefault();
+          drawStatus = 2;
+          let intervalDuration = 50;
+          let highlightIndex;
+          if (e.key === "Enter") {
+            clearInterval(fastInterval);
+            document.removeEventListener("keydown", enterHandler);
+
+            // 확률 함수에 따라 추가 spinCount 결정
+            let getRandom = eval(
+              `(${document.getElementById("probabilityFunction").value})`
+            );
+            let randomIdx = getRandom(balls.length);
+            let additionalSpinCount = randomIdx + 1;
+            let targetSpinCount = currentIteration + additionalSpinCount;
+            console.log("Target spin count:", targetSpinCount);
+
+            // 느려지는 애니메이션 단계별 실행 (원래 로직과 동일)
+            // startSecondInterval();
+
+            startAnimation();
+
+            function startAnimation() {
+              function animateStep() {
+                highlightIndex = currentIteration % balls.length;
+                // div ball 애니메이션
+                ballsArray.forEach((ball) =>
+                  ball.classList.remove("ball_selected")
+                );
+                ballsArray[highlightIndex].classList.add("ball_selected");
+
+                currentIteration++;
+                const gap = targetSpinCount - currentIteration;
+                console.log("Interval, remaining:", gap, intervalDuration);
+                setIntervalDuration(gap);
+
+                if (currentIteration >= targetSpinCount) {
+                  endAnimation();
+                  return;
+                }
+
+                setTimeout(animateStep, intervalDuration);
+              }
+
+              animateStep(); // 애니메이션 시작
+            }
+
+            function setIntervalDuration(gap) {
+              if (gap <= 1) {
+                intervalDuration = 1000;
+              } else if (gap <= 2) {
+                intervalDuration = 950;
+              } else if (gap <= 3) {
+                intervalDuration = 900;
+              } else if (gap <= 4) {
+                intervalDuration = 850;
+              } else if (gap <= 5) {
+                intervalDuration = 800;
+              } else if (gap <= 6) {
+                intervalDuration = 750;
+              } else if (gap <= 7) {
+                intervalDuration = 700;
+              } else if (gap <= 8) {
+                intervalDuration = 650;
+              } else if (gap <= 9) {
+                intervalDuration = 600;
+              } else if (gap <= 10) {
+                intervalDuration = 550;
+              } else if (gap <= 12) {
+                intervalDuration = 500;
+              } else if (gap <= 14) {
+                intervalDuration = 450;
+              } else if (gap <= 17) {
+                intervalDuration = 400;
+              } else if (gap <= 20) {
+                intervalDuration = 350;
+              } else if (gap <= 25) {
+                intervalDuration = 300;
+              } else if (gap <= 30) {
+                intervalDuration = 250;
+              } else if (gap <= 40) {
+                intervalDuration = 200;
+              } else if (gap <= 60) {
+                intervalDuration = 150;
+              } else if (gap <= 80) {
+                intervalDuration = 100;
+              } else if (gap <= 100) {
+                intervalDuration = 70;
+              } else {
+                intervalDuration = 50;
+              }
+            }
+
+            function endAnimation() {
+              // 최종 당첨 공 처리
+              let winnerBall = ballsArray[highlightIndex];
+              winnerBall.active = true;
+              setTimeout(() => {
+                // div ball 애니메이션
+                ballsArray.forEach((ball) =>
+                  ball.classList.remove("ball_selected")
+                );
+                winnerBall.classList.add("ball_completed");
+              }, 1000);
+              setTimeout(() => {
+                drawStatus = 0;
+                balls.splice(highlightIndex, 1);
+
+                Swal.fire({
+                  title: `${winnerBall.textContent}번`,
+                  html: `🎉 <strong>축하합니다!</strong> ${selectedPrize.textContent} 당첨!`,
+                  icon: "success",
+                  iconHtml: `🎉`, // 체크표시 대신 다른 문자 넣기
+                  width: "auto",
+                  padding: "1em",
+                  heightAuto: false,
+                  allowOutsideClick: false,
+                  showConfirmButton: true,
+                  confirmButtonText: "확인",
+                  buttonsStyling: true,
+                  customClass: {
+                    confirmButton: "primary-color", // 여기서 커스텀 클래스 지정
+                  },
+                }).then(() => {
+                  // 당첨된 번호는 ballArray에서 제거
+                  ballsArray[highlightIndex].remove();
+                });
+
+                selectedPrize.textContent += ` - ${winnerBall.textContent}번`;
+                // selectedPrize.disabled = true;
+                selectedPrize.classList.add("button-outline");
+                selectedPrize = null;
+                [...prizeList.children].forEach((c) =>
+                  c.classList.remove("bg-green-400")
+                );
+                localStorage.setItem("latestPrizeList", prizeList.innerHTML);
+                localStorage.setItem("latestBalls", JSON.stringify(balls));
+                document.removeEventListener("keydown", preventRefresh);
+              }, 1500);
+            }
+          }
         };
 
-      })
-    }
-
-    const canvas = document.getElementById('myCanvas');
-    const ctx = canvas.getContext('2d');
-
-    class Ball {
-      constructor(x, y, radius, color, number) {
-        this.x = x;
-        this.y = y;
-        this.radius = radius;
-        this.color = color;
-        this.number = number;
-      }
-      draw(ctx) {
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-        ctx.fillStyle = this.color;
-        ctx.fill();
-        ctx.strokeStyle = "#000";
-        ctx.lineWidth = 2;
-        ctx.stroke();
-        ctx.closePath();
-
-        // 숫자 표시
-        ctx.fillStyle = "#000";
-        ctx.font = "bold 24px Arial";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.fillText(this.number, this.x, this.y);
-      }
-    }
-
-    let balls = [];
-    let ballNumbers = [];
-    let selectedPrize = null;
-    let drawStatus = 0;
-
-    const ballMargin = 0;
-    const ballRadius = 40;
-
-    const latestBallCount = localStorage.getItem('latestBallCount');
-    if (latestBallCount) {
-      document.getElementById('ballCount').value = latestBallCount;
-    }
-
-    let latestBalls = localStorage.getItem('latestBalls');
-    if (latestBalls){
-      const colCount = Math.floor((canvas.width - ballMargin) / (2 * ballRadius + ballMargin));
-      const rowCount = Math.ceil(latestBallCount / colCount);
-      canvas.height = ballMargin + rowCount * (2 * ballRadius + ballMargin);
-
-      latestBalls = JSON.parse(latestBalls);
-      for (let i = 0; i < latestBalls.length; i++) {
-        let ball = latestBalls[i];
-        ball = new Ball(ball.x, ball.y, ball.radius, ball.color, ball.number);
-        balls.push(ball);
-      }
-
-      animate();
-    }
-
-
-
-    // 캔버스 애니메이션 함수
-    function animate() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      balls.forEach(ball => ball.draw(ctx));
-      requestAnimationFrame(animate);
-    }
-
-    // 공 생성 (발급숫자 입력 후 엔터)
-    document.getElementById('ballCount').onkeyup = e => {
-      if (e.key === 'Enter') createBalls(+e.target.value);
-    };
-
-    // 배열 섞기 (Fisher-Yates 알고리즘)
-    function shuffle(arr) {
-      for (let i = arr.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [arr[i], arr[j]] = [arr[j], arr[i]];
-      }
-      return arr;
-    }
-
-    // 공 생성 함수
-    function createBalls(n) {
-      // ballNumbers = Array.from({ length: n }, (_, i) => i + 1);
-      const colCount = Math.floor((canvas.width - ballMargin) / (2 * ballRadius + ballMargin));
-      const rowCount = Math.ceil(n / colCount);
-      canvas.height = ballMargin + rowCount * (2 * ballRadius + ballMargin);
-
-      let positions = [];
-      for (let i = 0; i < n; i++) {
-        const col = i % colCount;
-        const row = Math.floor(i / colCount);
-        const x = ballMargin + ballRadius + col * (2 * ballRadius + ballMargin);
-        const y = ballMargin + ballRadius + row * (2 * ballRadius + ballMargin);
-        positions.push({ x, y });
-      }
-      positions = shuffle(positions);
-
-      balls = [];
-      for (let i = 0; i < n; i++) {
-        const pos = positions[i];
-        const ball = new Ball(pos.x, pos.y, ballRadius, "white", i + 1);
-        balls.push(ball);
-      }
-      balls.sort((a, b) => (a.y - b.y) || (a.x - b.x));
-      animate();
-
-      localStorage.setItem('latestBallCount',n);
-      localStorage.setItem('latestBalls', JSON.stringify(balls));
-    }
-
-    function preventRefresh(e){
-      // F5 키 (키 코드 116) 막기
-      if(e.keyCode === 116){
-        e.preventDefault();
-        alert('추첨 중 새로고침이 제한됩니다.');
-      }else if((e.ctrlKey || e.metaKey) && e.keyCode === 82){
-        // Ctrl+R 혹은 Command+R (mac) 막기
-        e.preventDefault();
-        alert('추첨 중 새로고침이 제한됩니다.');
-      }
-      window.onbeforeunload = function(e) {
-        e.preventDefault();
+        document.addEventListener("keydown", enterHandler);
       };
-    }
 
-    // 추첨 버튼 클릭 이벤트
-    document.getElementById('drawBtn').onclick = () => {
-      console.log("drawStatus",drawStatus);
-      if(drawStatus > 0) return Swal.fire('추첨이 진행중 입니다.');
-      if (!selectedPrize) return Swal.fire('상품을 클릭하여 선택하세요');
-      if (balls.length === 0) return Swal.fire('발급된 번호가 모두 사용되었습니다.');
-      drawStatus = 1;
+      // 상품 추가 버튼 이벤트
+      document.getElementById("addPrizeBtn").onclick = () => {
+        Swal.fire({
+          input: "textarea",
+          title: "상품명을 줄바꿈으로 입력",
+          showCancelButton: true,
+          width: "auto",
+          padding: "1em",
+          heightAuto: false,
+          allowOutsideClick: false,
+          confirmButtonText: "추가",
+          cancelButtonText: "취소",
+          customClass: {
+            confirmButton: "primary-color", // 여기서 커스텀 클래스 지정
+          },
+        })
+          .then(({ value }) => {
+            value?.split("\n").forEach((p) => {
+              const el = document.createElement("button");
+              el.textContent = p;
+              const defaultClass = "button-default ";
 
-      // 새로고침 제한
-      document.addEventListener('keydown', preventRefresh);
-
-      let currentIteration = 0;
-      // 10ms 간격으로 무한 진행되는 빠른 하이라이트 애니메이션
-      let fastInterval = setInterval(() => {
-        balls.forEach(ball => ball.color = "white");
-        let highlightIndex = currentIteration % balls.length;
-        balls[highlightIndex].color = "yellow";
-        currentIteration++;
-      }, 10);
-
-      // 엔터키 입력 시 빠른 애니메이션 중단 및 spinCount 결정 후 느린 애니메이션 시작
-      const enterHandler = (e) => {
-        e.preventDefault();
-        drawStatus = 2;
-        if (e.key === 'Enter') {
-          clearInterval(fastInterval);
-          document.removeEventListener('keydown', enterHandler);
-
-          // 확률 함수에 따라 추가 spinCount 결정
-          let getRandom = eval(`(${document.getElementById('probabilityFunction').value})`);
-          let randomIdx = getRandom(balls.length);
-          let additionalSpinCount = (randomIdx + 1);
-          let targetSpinCount = currentIteration + additionalSpinCount;
-          console.log("Target spin count:", targetSpinCount);
-
-          // 느려지는 애니메이션 단계별 실행 (원래 로직과 동일)
-          startSecondInterval();
-
-          function startSecondInterval(){
-            let secondInterval = setInterval(() => {
-              balls.forEach(ball => ball.color = "white");
-              let highlightIndex = currentIteration % balls.length;
-              balls[highlightIndex].color = "yellow";
-              currentIteration++;
-              console.log("Second Interval, remaining:", targetSpinCount - currentIteration);
-              if(targetSpinCount - currentIteration <= 100){
-                clearInterval(secondInterval);
-                startThirdInterval();
+              if (p.includes("손스타") || p.includes("한지니어스")) {
+                el.className = defaultClass + "special";
+              } else {
+                el.className = defaultClass;
               }
-            }, 50);
-          }
 
-          function startThirdInterval(){
-            let thirdInterval = setInterval(() => {
-              balls.forEach(ball => ball.color = "white");
-              let highlightIndex = currentIteration % balls.length;
-              balls[highlightIndex].color = "yellow";
-              currentIteration++;
-              console.log("Third Interval, remaining:", targetSpinCount - currentIteration);
-              if(targetSpinCount - currentIteration <= 50){
-                clearInterval(thirdInterval);
-                startFourthInterval();
-              }
-            }, 70);
-          }
+              el.onclick = () => {
+                [...prizeList.children].forEach((c) =>
+                  c.classList.remove("button-selected")
+                );
+                el.classList.add("button-selected");
+                selectedPrize = el;
+              };
+              prizeList.append(el);
+            });
+          })
+          .then((value) => {
+            localStorage.setItem("latestPrizeList", prizeList.innerHTML);
+          });
+      };
 
-          function startFourthInterval(){
-            let forthInterval = setInterval(() => {
-              balls.forEach(ball => ball.color = "white");
-              let highlightIndex = currentIteration % balls.length;
-              balls[highlightIndex].color = "yellow";
-              currentIteration++;
-              console.log("Fourth Interval, remaining:", targetSpinCount - currentIteration);
-              if(targetSpinCount - currentIteration <= 25){
-                clearInterval(forthInterval);
-                startFifthInterval();
-              }
-            }, 100);
-          }
+      // 리셋 버튼 이벤트
+      document.getElementById("resetPrizeBtn").onclick = () => {
+        if (confirm("리셋을 진행합니다") === true) {
+          prizeList.innerHTML = "";
+          balls = [];
+          selectedPrize = null;
 
-          function startFifthInterval(){
-            let fifthInterval = setInterval(() => {
-              balls.forEach(ball => ball.color = "white");
-              let highlightIndex = currentIteration % balls.length;
-              balls[highlightIndex].color = "yellow";
-              currentIteration++;
-              console.log("Fifth Interval, remaining:", targetSpinCount - currentIteration);
-              if(targetSpinCount - currentIteration <= 12){
-                clearInterval(fifthInterval);
-                startSixthInterval();
-              }
-            }, 300);
-          }
-
-          function startSixthInterval(){
-            let sixthInterval = setInterval(() => {
-              balls.forEach(ball => ball.color = "white");
-              let highlightIndex = currentIteration % balls.length;
-              balls[highlightIndex].color = "yellow";
-              currentIteration++;
-              console.log("Sixth Interval, remaining:", targetSpinCount - currentIteration);
-              if(targetSpinCount - currentIteration <= 6){
-                clearInterval(sixthInterval);
-                startSeventhInterval();
-              }
-            }, 500);
-          }
-
-          function startSeventhInterval(){
-            let seventhInterval = setInterval(() => {
-              balls.forEach(ball => ball.color = "white");
-              let highlightIndex = currentIteration % balls.length;
-              balls[highlightIndex].color = "yellow";
-              currentIteration++;
-              console.log("Seventh Interval, remaining:", targetSpinCount - currentIteration);
-              if(targetSpinCount - currentIteration <= 3){
-                clearInterval(seventhInterval);
-                startEighthInterval();
-              }
-            }, 700);
-          }
-
-          function startEighthInterval(){
-            let eighthInterval = setInterval(() => {
-              balls.forEach(ball => ball.color = "white");
-              let highlightIndex = currentIteration % balls.length;
-              balls[highlightIndex].color = "yellow";
-              currentIteration++;
-              console.log("Eighth Interval, remaining:", targetSpinCount - currentIteration);
-              if (currentIteration >= targetSpinCount) {
-                clearInterval(eighthInterval);
-                // 최종 당첨 공 처리
-                let winnerBall = balls[highlightIndex];
-                winnerBall.active = true;
-                setTimeout(() => {
-                  balls[highlightIndex].color = "green";
-                }, 1000);
-                setTimeout(() => {
-                  drawStatus = 0;
-                  balls.splice(highlightIndex, 1);
-
-                  Swal.fire({
-                    title: `${winnerBall.number}번`,
-                    html: `🎉 <strong>축하합니다!</strong> ${selectedPrize.textContent} 당첨!`,
-                    icon: 'success',
-                    iconHtml: `🎉`, // 체크표시 대신 다른 문자 넣기
-                    customClass: {
-                      // 필요한 경우 여기에 CSS 클래스를 지정해 커스텀 스타일 적용
-                      title: 'swal2-title-custom',
-                      popup: 'swal2-popup-custom',
-                      icon: 'swal2-icon-custom'
-                    }
-                  });
-
-
-                  selectedPrize.textContent += ` - ${winnerBall.number}번`;
-                  // selectedPrize.disabled = true;
-                  selectedPrize.classList.add('bg-gray-400');
-                  selectedPrize = null;
-                  [...prizeList.children].forEach(c => c.classList.remove('bg-green-400'));
-                  localStorage.setItem('latestPrizeList', prizeList.innerHTML);
-                  localStorage.setItem('latestBalls', JSON.stringify(balls));
-                  document.removeEventListener('keydown', preventRefresh);
-                }, 1500);
-              }
-            }, 1000);
-          }
+          localStorage.removeItem("latestPrizeList");
+          localStorage.removeItem("latestBallCount");
+          localStorage.removeItem("latestBalls");
         }
       };
 
-      document.addEventListener('keydown', enterHandler);
-    };
-
-    // 상품 추가 버튼 이벤트
-    document.getElementById('addPrizeBtn').onclick = () => {
-      Swal.fire({
-        input: 'textarea',
-        title: '상품명을 줄바꿈으로 입력',
-        showCancelButton: true
-      }).then(({ value }) => {
-        value?.split('\n').forEach(p => {
-          const el = document.createElement('button');
-          el.textContent = p;
-          if(p.includes('손스타') || p.includes('한지니어스')){
-            el.className = 'px-2 py-1 bg-sky-200 rounded';
-          }else{
-            el.className = 'px-2 py-1 bg-gray-200 font-semibold text-gray-600 rounded';
-          }
-
-          el.onclick = () => {
-            [...prizeList.children].forEach(c => c.classList.remove('bg-green-400'));
-            el.classList.add('bg-green-400');
-            selectedPrize = el;
-          };
-          prizeList.append(el);
-        });
-      }).then(value => {
-        localStorage.setItem('latestPrizeList', prizeList.innerHTML);
+      titleArea.addEventListener("blur", (e) => {
+        localStorage.setItem("latestTitleArea", titleArea.innerText);
       });
-    };
-
-    // 리셋 버튼 이벤트
-    document.getElementById('resetPrizeBtn').onclick = () => {
-      if(confirm("리셋을 진행합니다")===true){
-        prizeList.innerHTML = '';
-        balls = [];
-        selectedPrize = null;
-
-        localStorage.removeItem('latestPrizeList');
-        localStorage.removeItem('latestBallCount');
-        localStorage.removeItem('latestBalls');
-      }
-
-    };
-
-
-    titleArea.addEventListener('blur', e => {
-      localStorage.setItem('latestTitleArea', titleArea.innerText);
-    })
-  </script>
-</body>
+    </script>
+  </body>
 </html>
