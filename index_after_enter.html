@@ -186,6 +186,9 @@
     </div>
 
     <script type="module">
+      let balls = [];
+      let selectedPrize = null;
+      let drawStatus = 0;
       let latestTitleArea = localStorage.getItem("latestTitleArea");
       let titleArea = document.getElementById("titleArea");
       if (!latestTitleArea) {
@@ -208,10 +211,6 @@
           };
         });
       }
-
-      let balls = [];
-      let selectedPrize = null;
-      let drawStatus = 0;
 
       const latestBallCount = localStorage.getItem("latestBallCount");
       if (latestBallCount) {
