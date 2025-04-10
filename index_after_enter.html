@@ -6,6 +6,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
     <link
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable.css"
@@ -39,6 +40,15 @@
       }
       .ball_wrap {
         background-color: black;
+
+        background-image: url('logo.png');
+        /* 배경 이미지 반복 설정 */
+        background-repeat: no-repeat;
+        /* 배경 이미지 위치 설정 (예: 중앙) */
+        background-position: center;
+        /* 배경 이미지 크기 설정 (예: 컨테이너에 맞도록 조정) */
+        background-size: contain;
+
         margin: 10px;
         padding: 10px;
         border-radius: 10px;
@@ -53,9 +63,20 @@
         align-items: flex-start;
         height: calc(100% - 20px);
       }
+
+      /*.ball_wrap::after {*/
+      /*  position: absolute;*/
+      /*  top: 50%;*/
+      /*  left: 50%;*/
+      /*  transform: translate(-50%, -50%);*/
+      /*  background: url('logo.png') no-repeat center center;*/
+      /*  background-size: 200px auto;*/
+      /*  opacity: 0.8;*/
+      /*}*/
+
       .primary-color {
         color: white;
-        background-color: #619eff;
+        background-color: #01163a;
       }
       .button-default {
         border-radius: 5px;
@@ -65,12 +86,12 @@
         font-weight: bold;
       }
       .button-outline {
-        border: 1px solid #619eff;
+        border: 1px solid #01163a;
         background-color: white;
-        color: #619eff;
+        color: #01163a;
       }
       .button-selected {
-        background-color: #619eff;
+        background-color: #01163a;
         color: white;
       }
 
@@ -88,14 +109,63 @@
         font-size: 32px;
         color: #394452;
         font-weight: bold;
+        position: relative; /* 가상 요소의 절대위치 기준이 됨 */
+
       }
+
+      .ball:after {
+        border-radius: 50%;
+        content: "";
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+
+        /* 우측 상단 1/4 영역(삼각형)을 자르고 싶은 경우의 예시:
+           polygon(50% 0%, 100% 0%, 100% 50%)
+           => 컨테이너의 가로세로 기준, (50%,0%)~(100%,0%)~(100%,50%)를 연결한 삼각형
+        */
+        clip-path: polygon(50% 0%, 100% 0%, 100% 50%);
+
+        /*
+          사선 스트라이프 배경을 만드는 방법 중 하나:
+          repeating-linear-gradient(각도, 색1 시작, 색1 끝, 색2 시작, 색2 끝, …)
+          => 아래는 45도 사선으로 10px 간격마다 빨강/흰색이 반복
+        */
+        /*background: linear-gradient(*/
+        /*        135deg,*/
+        /*        #00ceed 0%,*/
+        /*        #00ceed 33%,*/
+        /*        #005cff 33%,*/
+        /*        #005cff 43%,*/
+        /*        #0081ff 43%,*/
+        /*        #0081ff 50%,*/
+        /*        #01163a 50%*/
+        /*);*/
+        background: linear-gradient(
+                135deg,
+                #00ceed 0%,
+                #00ceed 33%,
+                #005cff 33%,
+                #005cff 50%,
+                #0081ff 50%
+        );
+        /* 필요시 불투명도 조절 가능 */
+        /* opacity: 0.8; */
+
+        pointer-events: none; /* 텍스트 선택/클릭 간섭 방지 */
+      }
+
+
+
       .ball_selected {
-        background: #619eff;
+        background: #0081ff;
         box-shadow: none;
         color: white;
       }
       .ball_completed {
-        background: #619eff;
+        background: #0081ff;
         box-shadow: none;
         color: white;
       }
@@ -108,7 +178,7 @@
         color: white;
       }
       .button-selected.special {
-        border: 5px solid #619eff;
+        border: 5px solid #0081ff;
         color: white;
       }
     </style>
@@ -120,7 +190,7 @@
         <h2
           id="titleArea"
           contenteditable
-          class="items-center text-2xl font-bold mb-4 cursor-pointer text-[#619eff]"
+          class="items-center text-2xl font-bold mb-4 cursor-pointer text-[#01163a]"
         >
           제목 입력
         </h2>
@@ -142,8 +212,18 @@
           />
           <div style="display: flex; gap: 10px; width: 100%">
             <button
+                    id="refreshSortBallBtn"
+                    class="px-3 py-1 bg-white border-2 border-blue-600 text-blue-600 rounded mt-2 h-[48px]"
+                    style="flex: 0"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 6V4l-4 4 4 4V8c3.31 0 6 2.69 6 6a6 6 0 01-6 6 6.002 6.002 0 01-5.657-4H4.07a8.003 8.003 0 007.93 6 8 8 0 000-16z"/>
+              </svg>
+            </button>
+
+            <button
               id="addPrizeBtn"
-              class="px-3 py-1 bg-blue-500 text-white rounded mt-2 h-[48px]"
+              class="px-3 py-1 bg-blue-600 text-white rounded mt-2 h-[48px]"
               style="flex: 1"
             >
               + 상품 추가
@@ -502,7 +582,7 @@
 
                 Swal.fire({
                   title: `${winnerBall.textContent}번`,
-                  html: `🎉 <strong>축하합니다!</strong> ${selectedPrize.textContent} 당첨!`,
+                  html: `🎉 <strong>축하합니다! ${selectedPrize.textContent} 당첨!</strong>`,
                   icon: "success",
                   iconHtml: `🎉`, // 체크표시 대신 다른 문자 넣기
                   width: "auto",
@@ -599,6 +679,27 @@
       titleArea.addEventListener("blur", (e) => {
         localStorage.setItem("latestTitleArea", titleArea.innerText);
       });
+
+      //새로고침 svg 버튼 클릭
+      document.getElementById("refreshSortBallBtn").onclick = () => {
+        if (drawStatus > 0)
+          return Swal.fire({
+            title: "추첨이 진행중 입니다.",
+            width: "auto",
+            padding: "1em",
+            heightAuto: false,
+            allowOutsideClick: false,
+            confirmButtonText: "확인",
+            customClass: {
+              confirmButton: "primary-color", // 여기서 커스텀 클래스 지정
+            },
+          });
+        
+        if (confirm("남은 행운번호의 순서를 무작위로 섞습니다.")){
+          setBalls(shuffle(balls));
+
+        }
+      }
     </script>
   </body>
 </html>
