@@ -380,11 +380,32 @@
 
       // 공 생성 함수
       function createBalls(n) {
+        if (drawStatus > 0)
+          return Swal.fire({
+            title: "추첨이 진행중 입니다.",
+            width: "auto",
+            padding: "1em",
+            heightAuto: false,
+            allowOutsideClick: false,
+            confirmButtonText: "확인",
+            customClass: {
+              confirmButton: "primary-color", // 여기서 커스텀 클래스 지정
+            },
+          });
+
+        if(balls && balls.length > 0){
+          if(confirm("기존 행운번호 공이 존재합니다. 그래도 진행하시겠습니까?")){
+            setBalls(
+                    shuffle(Array.from({ length: n }, (_, i) => i + 1))
+            );
+          }else{
+            return;
+          }
+        }
 
         setBalls(
                 shuffle(Array.from({ length: n }, (_, i) => i + 1))
         );
-
       }
 
       // 공 등록 함수
