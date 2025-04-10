@@ -64,16 +64,6 @@
         height: calc(100% - 20px);
       }
 
-      /*.ball_wrap::after {*/
-      /*  position: absolute;*/
-      /*  top: 50%;*/
-      /*  left: 50%;*/
-      /*  transform: translate(-50%, -50%);*/
-      /*  background: url('logo.png') no-repeat center center;*/
-      /*  background-size: 200px auto;*/
-      /*  opacity: 0.8;*/
-      /*}*/
-
       .primary-color {
         color: white;
         background-color: #01163a;
@@ -96,8 +86,8 @@
       }
 
       .ball {
-        width: 58px;
-        height: 58px;
+        width: 56px;
+        height: 56px;
         border-radius: 50%;
         border: 1px solid #394452;
         background: radial-gradient(circle at 30% 30%, #ffffff, #dbe0e6);
@@ -188,11 +178,9 @@
     <div class="h-full">
       <div class="setting_container">
         <h2
-          id="titleArea"
-          contenteditable
-          class="items-center text-2xl font-bold mb-4 cursor-pointer text-[#01163a]"
+          class="items-center text-3xl font-bold mb-4 cursor-pointer text-[#01163a]"
         >
-          제목 입력
+          경품 목록
         </h2>
         <div id="prizeList" class="grid grid-cols-2 gap-2 w-full"></div>
         <div>
@@ -270,7 +258,17 @@
     </div>
 
     <!-- 오른쪽 영역: 캔버스 -->
-    <div class="w-full h-full flex items-center justify-center">
+
+    <div class="w-full h-full flex items-center justify-center setting_container">
+      <div>
+        <h2
+                id="titleArea"
+                contenteditable
+                class="items-center text-3xl font-bold mb-4 cursor-pointer text-[#01163a]"
+        >
+          제목 입력
+        </h2>
+      </div>
       <div class="ball_wrap">
         <div id="ball_container" />
       </div>
